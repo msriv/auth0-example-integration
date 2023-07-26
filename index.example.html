@@ -1,0 +1,117 @@
+<html>
+    <head>
+        <script src="https://cdn.auth0.com/js/auth0/9.18/auth0.min.js"></script>
+    </head>
+    <body>
+        <div>
+            <h2>Login form</h2>
+            <span>Email</span><input type="text" id="email" />
+            <span>Password</span><input type="password" id="password" />
+            <button id="loginbtn">Submit</button>
+        </div>
+
+        <div>
+            <h2>Signup form</h2>
+            <span>Email</span><input type="text" id="email-su" />
+            <span>Firstname</span><input type="text" id="fn" />
+            <span>Lastname</span><input type="text" id="ln" />
+            <span>Password</span><input type="password" id="password-su" />
+            <span>Confirm Password</span><input type="password" id="confirm-password-su" />
+            <button id="signupbtn">Submit</button>
+        </div>
+        
+        <button id="logoutbtn">Logout</button>
+
+        <script type="text/javascript">
+            var emailInput = document.getElementById("email");
+            var passwordInput = document.getElementById("password");
+            var loginbtn = document.getElementById("loginbtn");
+            var email_su_Input = document.getElementById("email-su");
+            var firstnameInput = document.getElementById("fn");
+            var lastnameInput = document.getElementById("ln");
+            var password_su_Input = document.getElementById("password-su");
+            var signupbtn = document.getElementById("signupbtn");
+            var logoutbtn = document.getElementById("logoutbtn");
+
+            var homeurl = "http://localhost:<port>"
+
+            var redirect_uri = {
+                sign_up: homeurl + "/signup_callback.html", // redirect to sign up success page on webflow
+                login: homeurl + "/login_callback.html" // redirect to conva directly on successful login
+            }
+
+            var clientID = "<auth0-client-id>";
+
+            var webAuthLogin = new auth0.WebAuth({
+                domain:       '<auth0-domain>',
+                clientID:     clientID,
+                redirectUri:  redirect_uri.login,
+                scope: "openid profile email",
+                audience: "<auth0-audience>",
+                responseType: "code"
+            });
+
+            var webAuthSignup = new auth0.WebAuth({
+                domain:       '<auth0-domain>',
+                clientID:     clientID,
+                redirectUri:  redirect_uri.sign_up,
+                scope: "openid profile email",
+                audience: "<auth0-audience>",
+                responseType: "code"
+            });
+
+            function login() {
+                webAuthLogin.login({
+                    realm: '<auth0-user-authentication-connection>',
+                    email: emailInput.value,
+                    password: passwordInput.value,
+                }, function(err) { 
+                    if (err) return alert('Something went wrong: ' + err.message);
+                    window.location.href = redirect_uri.login;
+                })
+            }
+
+            function signup() {
+                webAuthSignup.redirect.signupAndLogin({
+                    connection: '<auth0-user-authentication-connection>',
+                    email: email_su_Input.value,
+                    password: password_su_Input.value,
+                    user_metadata: { 
+                        firstname: firstnameInput.value, 
+                        lastname: lastnameInput.value 
+                    },
+                }, function (err) {
+                    if (err) return alert('Something went wrong: ' + err.message);
+                    window.location.href = redirect_uri.sign_up;
+                });
+            }
+
+            loginbtn.addEventListener("click", (event) => {
+                console.log("Starting login!");
+                login();
+            })
+
+            signupbtn.addEventListener("click", (event) => {
+                console.log("Starting signup!");
+                signup();
+            })
+
+            function logout() {
+                webAuthSignup.logout({
+                    returnTo: homeurl,
+                    clientID: clientID
+                });
+                webAuthLogin.logout({
+                    returnTo: homeurl,
+                    clientID: clientID
+                });
+            }
+
+            logoutbtn.addEventListener("click", (event) => {
+                console.log("logging out")
+                logout()
+            })
+
+        </script>
+    </body>
+</html>
